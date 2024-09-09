@@ -6,7 +6,7 @@ aws cloudformation create-stack --stack-name <your-personalized-stack-name> --te
 
 ```
 
-Or by navigating to the IaC script directory and running the script in your terminal of choice:
+Or by navigating to the IaC_script directory and running the script in your terminal of choice:
 ```
 ./create_stack.sh
 ```
