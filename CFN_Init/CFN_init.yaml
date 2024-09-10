@@ -151,8 +151,8 @@ Resources:
               httpd: []
           files:
             /var/www/html/index.html:
-                content: !Sub | 
-                  <hmtl><head><title>Amazing test page</title></head><body><h1><center>${Message}</center></h1></body></html>
+              content: !Sub | 
+                <hmtl><head><title>Amazing test page</title></head><body><h1><center>${Message}</center></h1></body></html>
           services:
             sysvinit:
               httpd: 
