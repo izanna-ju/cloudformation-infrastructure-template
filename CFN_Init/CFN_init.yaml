@@ -76,23 +76,30 @@ Resources:
   publicSubnet:
     Type: AWS::EC2::Subnet
     Properties:
-      AvailabilityZone: !Select [ '1', !GetAZs '' ]
-      CidrBlock: !Select [ '1', !Cidr [ !GetAtt myVPC.CidrBlock, '16', '12' ] ]
+      AvailabilityZone: !Select
+        - '1'
+        - !GetAZs ''
+      CidrBlock: !Select
+        - '1'
+        - !Cidr
+          - !GetAtt myVPC.CidrBlock
+          - '16'
+          - '12'
       MapPublicIpOnLaunch: 'true'
       VpcId: !Ref myVPC
-  
+
   publicRouteTable:
     Type: AWS::EC2::RouteTable
-    Properties: 
+    Properties:
       VpcId: !Ref myVPC
-      Tags: 
-        - Key: Name 
+      Tags:
+        - Key: Name
           Value: !Sub ${EnvironmentType} Public Routes
 
-  publicRoute: 
+  publicRoute:
     Type: AWS::EC2::Route
     DependsOn: productionGatewayAttachment
-    Properties: 
+    Properties:
       RouteTableId: !Ref publicRouteTable
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref myInternetGateway
@@ -136,10 +143,27 @@ Resources:
   myTestInstance1:
     Type: AWS::EC2::Instance
     Condition: IsProduction
+    Metadata:
+      'AWS::CloudFormation::Init':
+        config:
+          packages:
+            yum: 
+              httpd: []
+          files:
+            /var/www/html/index.html
+              content: !Sub | 
+                <hmtl><head><title>Amazing test page</title></head><body><h1><center>${Message}</center></h1></body></html>
+          services:
+            sysvinit:
+              httpd: 
+                enabled: "true"
+                ensureRunning: "true"
+                files:
+                  - "/var/www/html/index.html"    
     CreationPolicy:
-      ResourceSignal: 
+      ResourceSignal:
         Count: '1'
-        Timeout: PT5M
+        Timeout: PT15M
     Properties:
       InstanceType: !FindInMap
         - DeployInstanceType
@@ -156,21 +180,14 @@ Resources:
       Tags:
         - Key: Name
           Value: Production Instance Test
-      UserData: 
-        Fn::Base64: !Sub |
+      UserData: !Base64
+        Fn::Sub: |
           #!/bin/bash -xe
           yum update -y aws-cfn-bootstrap
-          yum upgrade -y
-          yum install httpd -y
-          systemctl enable httpd
-          systemctl start httpd
-          echo "<hmtl><head><title>Amazing test page</title></head><body><h1><center>${Message}</center></h1></body></html>" > /var/www/html/index.html
-          /opt/aws/bin/cfn-signal -e $? \
-          --stack ${AWS::StackId} \
-          --resource myTestInstance1 \
+          /opt/aws/bin/cfn-init -v --stack ${AWS::StackId} --resource myTestInstance1 \
           --region ${AWS::Region}
-
-
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource myTestInstance1 \
+          --region ${AWS::Region}
 
   myTestInstance2:
     Type: AWS::EC2::Instance
@@ -191,8 +208,8 @@ Resources:
       Tags:
         - Key: Name
           Value: Developer Instance Test
-      UserData: !
-        Fn::Base64: !Sub |
+      UserData: !Base64
+        Fn::Sub: |
           #!/bin/bash -xe
           sudo apt update -y
           sudo apt upgrade -y
@@ -200,7 +217,6 @@ Resources:
           systemctl enable apache2
           systemctl start apache2
           echo "<hmtl><head><title>Amazing test page</title></head><body><h1><center>${Message}</center></h1></body></html>" > /var/www/html/index.html
-
   # Outputs:
   #   InstanceUrl:
   #     Description: Url of the web instance
