@@ -150,6 +150,26 @@ Resources:
             yum: 
               httpd: []
           files:
+            /etc/cfn/cfn-hup.conf: 
+              content: !Sub | 
+                [main]
+                stack=${AWS::StackName}
+                region=${AWS::Region}
+                interval=1  # checks for config change everty 1 minute
+                verbose=true
+              mode: '000400'
+              owner: 'root'
+              group: 'root'
+            /etc/cfn/hooks.d/cfn-auto-reloader.conf:
+              content: !Sub | 
+                [cfn-auto-reloader-hook]
+                triggers=post.update
+                path=Resources.myTestInstance1.Metadata.AWS::CloudFormation::Init
+                action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackId} --resource myTestInstance1 --region ${AWS::Region}
+                runas=root
+              mode: '000400'
+              owner: 'root'
+              group: 'root'
             /var/www/html/index.html:
               content: !Sub | 
                 <hmtl><head><title>Amazing test page</title></head><body><h1><center>${Message}</center></h1></body></html>
