@@ -155,7 +155,7 @@ Resources:
                 [main]
                 stack=${AWS::StackName}
                 region=${AWS::Region}
-                interval=1  # checks for config change everty 1 minute
+                interval=1  # checks for config change every 1 minute
                 verbose=true
               mode: '000400'
               owner: 'root'
