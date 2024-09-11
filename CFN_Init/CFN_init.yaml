@@ -9,7 +9,7 @@ Parameters:
       - prod
   Message:
     Description: Message for HTML page
-    Default: Testing conditions and Mapping functionalities in CFN
+    Default: Testing functionalities of cfn-init and cfn-hup in CloudFormation
     Type: String
 
 Mappings:
