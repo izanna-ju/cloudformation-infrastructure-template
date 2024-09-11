@@ -166,7 +166,7 @@ Resources:
                 triggers=post.update
                 path=Resources.myTestInstance1.Metadata.AWS::CloudFormation::Init
                 action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackId} --resource myTestInstance1 --region ${AWS::Region}
-                runas=root
+                runas=root 
               mode: '000400'
               owner: 'root'
               group: 'root'
@@ -175,6 +175,12 @@ Resources:
                 <hmtl><head><title>Amazing test page</title></head><body><h1><center>${Message}</center></h1></body></html>
           services:
             sysvinit:
+              cfn-hup: 
+                enabled: "true"
+                ensureRunning: "true"
+                files: 
+                  - /etc/cfn/cfn-hup.conf 
+                  - /etc/cfn/hooks.d/cfn-auto-reloader.conf
               httpd: 
                 enabled: "true"
                 ensureRunning: "true"
@@ -203,7 +209,7 @@ Resources:
       UserData: !Base64
         Fn::Sub: |
           #!/bin/bash -xe
-          yum update -y aws-cfn-bootstrap
+          # yum update -y aws-cfn-bootstrap
           /opt/aws/bin/cfn-init -v --stack ${AWS::StackId} --resource myTestInstance1 --region ${AWS::Region}
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource myTestInstance1 --region ${AWS::Region}
 
