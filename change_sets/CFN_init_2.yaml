@@ -110,21 +110,6 @@ Resources:
       RouteTableId: !Ref publicRouteTable
       SubnetId: !Ref publicSubnet
 
-  devSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: Allow http request to client host
-      VpcId: !Ref myVPC
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: '80'
-          ToPort: '80'
-          CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp
-          FromPort: '22'
-          ToPort: '22'
-          CidrIp: 0.0.0.0/0
-
   prodSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -213,34 +198,7 @@ Resources:
           /opt/aws/bin/cfn-init -v --stack ${AWS::StackId} --resource myTestInstance1 --region ${AWS::Region}
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource myTestInstance1 --region ${AWS::Region}
 
-  myTestInstance2:
-    Type: AWS::EC2::Instance
-    Condition: IsDeveloper
-    Properties:
-      InstanceType: !FindInMap
-        - DeployInstanceType
-        - !Ref AWS::Region
-        - !Ref EnvironmentType
-      ImageId: !FindInMap
-        - RegionalMap
-        - !Ref AWS::Region
-        - !Ref EnvironmentType
-      SecurityGroupIds:
-        - !Ref devSecurityGroup
-      SubnetId: !Ref publicSubnet
-      # KeyName: A4L
-      Tags:
-        - Key: Name
-          Value: Developer Instance Test
-      UserData: !Base64
-        Fn::Sub: |
-          #!/bin/bash -xe
-          sudo apt update -y
-          sudo apt upgrade -y
-          sudo apt install apache2 -y
-          systemctl enable apache2
-          systemctl start apache2
-          echo "<hmtl><head><title>Amazing test page</title></head><body><h1><center>${Message}</center></h1></body></html>" > /var/www/html/index.html
+          
   # Outputs:
   #   InstanceUrl:
   #     Description: Url of the web instance
